@@ -6,7 +6,6 @@ import androidx.room.Query
 
 @Dao
 interface AttendanceDao {
-
     @Insert
     suspend fun insert(attendance: AttendanceEntity)
 
