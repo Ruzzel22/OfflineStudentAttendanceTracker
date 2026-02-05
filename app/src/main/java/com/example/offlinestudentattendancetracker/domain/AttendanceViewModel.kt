@@ -1,12 +1,12 @@
-package com.example.offlinestudentattendancetracker
+package com.example.offlinestudentattendancetracker.domain
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.offlinestudentattendancetracker.data.AttendanceRepositoryImpl
 import com.example.offlinestudentattendancetracker.data.room.AppDatabase
-import com.example.offlinestudentattendancetracker.domain.Attendance
-import com.example.offlinestudentattendancetracker.domain.Student
+import com.example.offlinestudentattendancetracker.data.room.AttendanceEntity
+import com.example.offlinestudentattendancetracker.data.room.StudentEntity
 import com.example.offlinestudentattendancetracker.presentation.AttendanceIntent
 import com.example.offlinestudentattendancetracker.presentation.AttendanceState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,23 +20,35 @@ class AttendanceViewModel(application: Application) : AndroidViewModel(applicati
 
     init {
         viewModelScope.launch {
-            val existing = repository.getStudents()
-            if (existing.isEmpty()) {
-                repository.addStudent(Student(0, "John Doe", "S001"))
-                repository.addStudent(Student(0, "Jane Smith", "S002"))
+            try {
+                val existing = repository.getStudents()
+                if (existing.isEmpty()) {
+                    repository.addStudent(StudentEntity(name = "John Doe", studentNumber = "S001"))
+                    repository.addStudent(StudentEntity(name = "Jane Smith", studentNumber = "S002"))
+                }
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace() // log DB exceptions
             }
-            load()
         }
     }
 
     fun onIntent(intent: AttendanceIntent) {
         viewModelScope.launch {
-            when (intent) {
-                is AttendanceIntent.Load -> load()
-                is AttendanceIntent.Present -> repository.markAttendance(Attendance(intent.id, true))
-                is AttendanceIntent.Absent -> repository.markAttendance(Attendance(intent.id, false))
+            try {
+                when (intent) {
+                    is AttendanceIntent.Load -> load()
+                    is AttendanceIntent.Present -> repository.markAttendance(
+                        AttendanceEntity(studentId = intent.id, isPresent = true)
+                    )
+                    is AttendanceIntent.Absent -> repository.markAttendance(
+                        AttendanceEntity(studentId = intent.id, isPresent = false)
+                    )
+                }
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace() // log DB exceptions
             }
-            load()
         }
     }
 

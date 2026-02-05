@@ -6,17 +6,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.offlinestudentattendancetracker.AttendanceViewModel
+import com.example.offlinestudentattendancetracker.domain.AttendanceViewModel
 
 @Composable
-fun AttendanceScreen() {
-    val context = LocalContext.current.applicationContext as android.app.Application
-    val viewModel: AttendanceViewModel = viewModel(
-        factory = androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.getInstance(context)
-    )
+fun AttendanceScreen(viewModel: AttendanceViewModel) {
 
     val state by viewModel.state.collectAsState()
 
@@ -26,7 +20,7 @@ fun AttendanceScreen() {
         Spacer(Modifier.height(16.dp))
 
         LazyColumn {
-            items(state.students) { student ->
+            items(state.students, key = { it.id }) { student ->
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
